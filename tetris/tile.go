@@ -21,7 +21,6 @@ func (t Tile) String() string {
 	for _, c := range t.Points {
 		str = str + fmt.Sprintf("%02x ", c)
 	}
-
 	return str + "}"
 }
 

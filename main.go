@@ -14,5 +14,4 @@ func main() {
 	defer destroy()
 
 	termui.Game()
-
 }

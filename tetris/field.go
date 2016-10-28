@@ -21,16 +21,6 @@ func NewField(size image.Point) Field {
 	}
 }
 
-func (t Field) collides(ti Tile, pos image.Point) bool {
-	for _, pt := range ti.Points {
-		x, y := uint8(pos.X)+pt>>4, uint8(pos.Y)+pt&0x0F
-		if t.Raw[y][x] > 0 {
-			return true
-		}
-	}
-	return false
-}
-
 func (t Field) Fits(ti Tile, pos image.Point) bool {
 	for _, pt := range ti.Points {
 		x, y := pos.X+int(pt>>4), pos.Y+int(pt&0x0F)
