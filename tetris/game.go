@@ -12,18 +12,18 @@ var (
 )
 
 type Piece struct {
-	Pos   image.Point
-	Tile  Tile
-	Color uint8
+	Pos       image.Point
+	Tetrimino Tetrimino
+	Color     uint8
 }
 
 func NewPiece(fieldWidth int) Piece {
-	i := rand.Intn(len(tiles))
-	tile := tiles[i]
+	i := rand.Intn(len(tetriminos))
+	tetrimino := tetriminos[i]
 	return Piece{
-		Pos:   image.Pt((fieldWidth-int(tile.Dim))/2, 0),
-		Tile:  tile,
-		Color: uint8(i + 1),
+		Pos:       image.Pt((fieldWidth-int(tetrimino.Dim))/2, 0),
+		Tetrimino: tetrimino,
+		Color:     uint8(i + 2),
 	}
 }
 
@@ -42,17 +42,17 @@ func NewGame(size image.Point) *Game {
 }
 
 func (g *Game) Rotate() bool {
-	tile := g.Piece.Tile.Rotate()
-	if !g.Field.Fits(tile, g.Piece.Pos) {
+	t := g.Piece.Tetrimino.Rotate()
+	if !g.Field.Fits(t, g.Piece.Pos) {
 		return false
 	}
-	g.Piece.Tile = tile
+	g.Piece.Tetrimino = t
 	return true
 }
 
 func (g *Game) Move(d image.Point) bool {
 	pos := g.Piece.Pos.Add(d)
-	if !g.Field.Fits(g.Piece.Tile, pos) {
+	if !g.Field.Fits(g.Piece.Tetrimino, pos) {
 		return false
 	}
 	g.Piece.Pos = pos
@@ -65,6 +65,14 @@ func (g *Game) Tick() bool {
 
 		c := g.Field.FindCompleted()
 		g.Field.Clear(c)
+
+		if len(c) < 2 && g.Field.EndGame() {
+			return false
+		}
+
+		if !g.Field.Fits(g.Next.Tetrimino, g.Next.Pos) {
+			return false
+		}
 
 		g.Piece = g.Next
 		g.Next = NewPiece(g.Field.Size.X)

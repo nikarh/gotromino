@@ -4,10 +4,10 @@ import "testing"
 
 func TestRotation(t *testing.T) {
 
-	tile := tiles[3]
+	tetrimino := tetriminos[3]
 
-	t.Log(tile)
+	t.Log(tetrimino)
 
-	t.Log(tile.Rotate())
+	t.Log(tetrimino.Rotate())
 
 }

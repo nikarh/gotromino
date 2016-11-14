@@ -31,8 +31,9 @@ func Init() func() {
 
 func Game() {
 	g := tetris.NewGame(image.Pt(10, 22))
-	t := time.NewTicker(time.Second)
+	draw(g)
 
+	t := time.NewTicker(time.Second)
 	for {
 		select {
 		case e := <-eventQueue:
@@ -59,9 +60,9 @@ func Game() {
 			case termbox.KeyEsc:
 				os.Exit(0)
 			}
+			draw(g)
 		case <-t.C:
 			g.Tick()
-		default:
 			draw(g)
 		}
 	}
@@ -71,7 +72,7 @@ func draw(g *tetris.Game) {
 	termbox.Clear(termbox.ColorDefault, termbox.ColorDefault)
 
 	w, _ := termbox.Size()
-	fx, fy := g.Field.Size.X*2, g.Field.Size.Y
+	fx, fy := g.Field.Size.X*2, g.Field.Size.Y-2
 	sysw := 19
 
 	offset := image.Pt((w-fx-sysw-4)/2, 2)
@@ -83,16 +84,14 @@ func draw(g *tetris.Game) {
 	sm := offset.Add(image.Pt(2+fx+sysw/2, 3))
 	tbprintString("Next piece", sm.Add(image.Pt(-5, 0)))
 	tbprintRect(image.Rect(sm.X-5, sm.Y+1, sm.X+4, sm.Y+1+5))
-	tbfill(image.Rect(sm.X-4, sm.Y+2, sm.X+4, sm.Y+2+4), termbox.ColorWhite)
+	tbfill(image.Rect(sm.X-4, sm.Y+2, sm.X+4, sm.Y+2+4), termbox.ColorDefault)
 
-	d := int(g.Next.Tile.Dim)
-	_ = d
-	tbprintPieceNoOffset(g.Next, sm.Add(image.Pt(-d, 3)))
+	tbprintPieceNoOffset(g.Next, sm.Add(image.Pt(-int(g.Next.Tetrimino.Dim), 3)))
 
 	tbprintRect(image.Rect(offset.X, offset.Y+2, offset.X+fx+1, offset.Y+fy+2+1))
 
 	offset = offset.Add(image.Pt(1, 3))
-	tbprintField(g.Field.Raw, offset)
+	tbprintField(g.Field, offset)
 	tbprintPiece(g.Piece, offset)
 
 	termbox.Flush()

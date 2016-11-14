@@ -2,7 +2,7 @@ Gotromino - a console Tetris™-like game written in go
 ===========================================
 
 I don't remember writing a Tetris™ game during my programming career,
-which is pretty weired. So here it goes.
+which is pretty weird. So here it goes.
 Tetris™, golang, terminal UI. What could be better?
 
 The game is not finished, so I hope opening it to public will 
