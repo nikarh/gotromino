@@ -41,7 +41,7 @@ type Game struct {
 	Paused bool
 	End    bool
 
-	Refresh chan func()
+	Refresh chan struct{}
 	Actions chan func()
 }
 
@@ -56,7 +56,7 @@ func NewGame(size image.Point) *Game {
 		Piece: NewPiece(size.X),
 		Next:  NewPiece(size.X),
 
-		Refresh: make(chan func()),
+		Refresh: make(chan struct{}),
 		Actions: make(chan func()),
 	}
 
@@ -75,7 +75,7 @@ func NewGame(size image.Point) *Game {
 					ticker.Stop()
 					ticker = newTicker(g.Level)
 				}
-				g.Refresh <- func() {}
+				g.Refresh <- struct{}{}
 			case action := <-g.Actions:
 				if g.End || g.Paused {
 					continue
@@ -151,13 +151,14 @@ func (g *Game) SoftDrop() {
 	}
 }
 
-func (g *Game) HardDrop(cb func()) {
+func (g *Game) HardDrop() {
 	t := time.NewTicker(time.Millisecond * 10)
 	for g.Move(Down) {
 		g.Score += 2
-		g.Refresh <- cb
+		g.Refresh <- struct{}{}
 		<-t.C
 	}
 	t.Stop()
 	g.tick()
+	g.Refresh <- struct{}{}
 }

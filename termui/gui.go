@@ -63,9 +63,7 @@ REPLAY:
 				}
 			case termbox.KeySpace:
 				g.Actions <- func() {
-					g.HardDrop(func() {
-						draw(g)
-					})
+					g.HardDrop()
 				}
 			case termbox.KeyEsc:
 				os.Exit(0)
@@ -74,8 +72,7 @@ REPLAY:
 					goto REPLAY
 				}
 			}
-		case cb := <-g.Refresh:
-			cb()
+		case <-g.Refresh:
 		}
 	}
 }
