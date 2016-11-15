@@ -10,4 +10,4 @@ Tetris™, golang, terminal UI. What could be better?
 Install this go package with `go get -u github.com/nikarh/gotromino`
 
 ### Game
-![Gameplay](game.png)
+![Gameplay](game.gif)
