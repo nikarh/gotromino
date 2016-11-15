@@ -2,21 +2,21 @@ package tetris
 
 import "fmt"
 
-type Tetrimino struct {
+type Tetromino struct {
 	Dim    uint8
 	Points []uint8
 }
 
-func (t Tetrimino) Rotate() Tetrimino {
+func (t Tetromino) Rotate() Tetromino {
 	rotated := make([]uint8, len(t.Points))
 	for i, p := range t.Points {
 		rotated[i] = (t.Dim-1-p&0x0F)<<4 + p>>4
 	}
 
-	return Tetrimino{t.Dim, rotated}
+	return Tetromino{t.Dim, rotated}
 }
 
-func (t Tetrimino) String() string {
+func (t Tetromino) String() string {
 	str := "{ "
 	for _, c := range t.Points {
 		str = str + fmt.Sprintf("%02x ", c)
@@ -24,7 +24,7 @@ func (t Tetrimino) String() string {
 	return str + "}"
 }
 
-var tetriminos = []Tetrimino{
+var tetrominos = []Tetromino{
 	{4, []uint8{0x01, 0x11, 0x21, 0x31}}, // I 0000_1111_0000_0000
 	{2, []uint8{0x00, 0x01, 0x11, 0x10}}, // O 11_11
 	{3, []uint8{0x10, 0x01, 0x11, 0x21}}, // T 010_111_000

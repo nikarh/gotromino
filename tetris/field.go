@@ -21,7 +21,7 @@ func NewField(size image.Point) Field {
 	}
 }
 
-func (t Field) Fits(ti Tetrimino, pos image.Point) bool {
+func (t Field) Fits(ti Tetromino, pos image.Point) bool {
 	for _, pt := range ti.Points {
 		x, y := pos.X+int(pt>>4), pos.Y+int(pt&0x0F)
 		if x < 0 || y < 0 || x >= t.Size.X || y >= t.Size.Y {
@@ -35,7 +35,7 @@ func (t Field) Fits(ti Tetrimino, pos image.Point) bool {
 }
 
 func (t Field) Put(p Piece) {
-	for _, pt := range p.Tetrimino.Points {
+	for _, pt := range p.Tetromino.Points {
 		x, y := p.Pos.X+int(pt>>4), p.Pos.Y+int(pt&0x0F)
 		t.Raw[y][x] = p.Color
 	}
@@ -69,7 +69,7 @@ func (t Field) Clear(lines []int) {
 	}
 }
 
-func (f Field) EndGame() bool {
+func (f Field) Full() bool {
 	for y := 1; y >= 0; y-- {
 		for x := 0; x < f.Size.X; x++ {
 			if f.Raw[y][x] > 0 {
