@@ -2,6 +2,7 @@ package tetris
 
 import (
 	"image"
+	"math"
 	"math/rand"
 	"time"
 )
@@ -40,28 +41,40 @@ type Game struct {
 	Paused bool
 	End    bool
 
-	Ticker chan func()
-	ticker *time.Ticker
+	Refresh chan func()
+	Actions chan func()
+}
+
+func newTicker(level uint8) *time.Ticker {
+	speed := 725*math.Pow(0.85, float64(level)) + float64(level)
+	return time.NewTicker(time.Duration(speed) * time.Millisecond)
 }
 
 func NewGame(size image.Point) *Game {
 	g := &Game{
-		Field:  NewField(size),
-		Piece:  NewPiece(size.X),
-		Next:   NewPiece(size.X),
-		Level:  1,
-		Ticker: make(chan func()),
+		Field: NewField(size),
+		Piece: NewPiece(size.X),
+		Next:  NewPiece(size.X),
+
+		Refresh: make(chan func()),
+		Actions: make(chan func()),
 	}
 
-	g.ticker = time.NewTicker(time.Second)
-
+	ticker := newTicker(g.Level)
 	go (func() {
-		for range g.ticker.C {
-			g.Ticker <- func() {
-				g.End = !g.tick()
-				if g.End {
-					g.ticker.Stop()
+		for {
+			select {
+			case <-ticker.C:
+				if g.End = !g.tick(); g.End {
+					ticker.Stop()
+				} else if lvl := uint8(g.Lines) / 10; lvl != g.Level {
+					g.Level = lvl
+					ticker.Stop()
+					ticker = newTicker(g.Level)
 				}
+				g.Refresh <- func() {}
+			case action := <-g.Actions:
+				action()
 			}
 		}
 	})()
@@ -156,7 +169,7 @@ func (g *Game) HardDrop(cb func()) {
 	t := time.NewTicker(time.Millisecond * 10)
 	for g.move(Down) {
 		g.Score += 2
-		cb()
+		g.Refresh <- cb
 		<-t.C
 	}
 	t.Stop()

@@ -46,17 +46,27 @@ REPLAY:
 
 			switch e.Key {
 			case termbox.KeyArrowLeft:
-				g.Move(tetris.Left)
+				g.Actions <- func() {
+					g.Move(tetris.Left)
+				}
 			case termbox.KeyArrowRight:
-				g.Move(tetris.Right)
+				g.Actions <- func() {
+					g.Move(tetris.Right)
+				}
 			case termbox.KeyArrowDown:
-				g.SoftDrop()
+				g.Actions <- func() {
+					g.SoftDrop()
+				}
 			case termbox.KeyArrowUp:
-				g.Rotate()
+				g.Actions <- func() {
+					g.Rotate()
+				}
 			case termbox.KeySpace:
-				g.HardDrop(func() {
-					draw(g)
-				})
+				g.Actions <- func() {
+					g.HardDrop(func() {
+						draw(g)
+					})
+				}
 			case termbox.KeyEsc:
 				os.Exit(0)
 			case termbox.KeyEnter:
@@ -64,8 +74,8 @@ REPLAY:
 					goto REPLAY
 				}
 			}
-		case do := <-g.Ticker:
-			do()
+		case f := <-g.Refresh:
+			f()
 		}
 	}
 }
