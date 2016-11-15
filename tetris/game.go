@@ -65,6 +65,9 @@ func NewGame(size image.Point) *Game {
 		for {
 			select {
 			case <-ticker.C:
+				if g.Paused {
+					continue
+				}
 				if g.End = !g.tick(); g.End {
 					ticker.Stop()
 				} else if lvl := uint8(g.Lines) / 10; lvl != g.Level {
@@ -74,6 +77,9 @@ func NewGame(size image.Point) *Game {
 				}
 				g.Refresh <- func() {}
 			case action := <-g.Actions:
+				if g.End || g.Paused {
+					continue
+				}
 				action()
 			}
 		}
@@ -82,18 +88,8 @@ func NewGame(size image.Point) *Game {
 	return g
 }
 
-func (g *Game) move(d image.Point) bool {
-	pos := g.Piece.Pos.Add(d)
-	if !g.Field.Fits(g.Piece.Tetromino, pos) {
-		return false
-	}
-	g.Piece.Pos = pos
-
-	return true
-}
-
 func (g *Game) tick() bool {
-	if !g.move(Down) {
+	if !g.Move(Down) {
 		g.Field.Put(g.Piece)
 
 		c := g.Field.FindCompleted()
@@ -131,10 +127,6 @@ func (g *Game) addScore(lines uint32) {
 }
 
 func (g *Game) Rotate() bool {
-	if g.End || g.Paused {
-		return false
-	}
-
 	t := g.Piece.Tetromino.Rotate()
 	if !g.Field.Fits(t, g.Piece.Pos) {
 		return false
@@ -144,30 +136,24 @@ func (g *Game) Rotate() bool {
 }
 
 func (g *Game) Move(d image.Point) bool {
-	if g.End || g.Paused {
+	pos := g.Piece.Pos.Add(d)
+	if !g.Field.Fits(g.Piece.Tetromino, pos) {
 		return false
 	}
+	g.Piece.Pos = pos
 
-	return g.move(d)
+	return true
 }
 
 func (g *Game) SoftDrop() {
-	if g.End || g.Paused {
-		return
-	}
-
-	if g.move(Down) {
+	if g.Move(Down) {
 		g.Score += 1
 	}
 }
 
 func (g *Game) HardDrop(cb func()) {
-	if g.End || g.Paused {
-		return
-	}
-
 	t := time.NewTicker(time.Millisecond * 10)
-	for g.move(Down) {
+	for g.Move(Down) {
 		g.Score += 2
 		g.Refresh <- cb
 		<-t.C

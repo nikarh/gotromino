@@ -74,8 +74,8 @@ REPLAY:
 					goto REPLAY
 				}
 			}
-		case f := <-g.Refresh:
-			f()
+		case cb := <-g.Refresh:
+			cb()
 		}
 	}
 }
