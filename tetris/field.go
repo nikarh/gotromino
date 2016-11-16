@@ -9,7 +9,7 @@ type Field struct {
 	Raw  [][]uint8
 }
 
-func NewField(size image.Point) Field {
+func newField(size image.Point) Field {
 	raw := make([][]uint8, size.Y)
 	for y := 0; y < size.Y; y++ {
 		raw[y] = make([]uint8, size.X)
@@ -37,7 +37,7 @@ func (t Field) Fits(ti Tetromino, pos image.Point) bool {
 func (t Field) Put(p Piece) {
 	for _, pt := range p.Tetromino.Points {
 		x, y := p.Pos.X+int(pt>>4), p.Pos.Y+int(pt&0x0F)
-		t.Raw[y][x] = p.Color
+		t.Raw[y][x] = p.Tetromino.Color
 	}
 }
 

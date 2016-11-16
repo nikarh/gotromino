@@ -1,13 +1,12 @@
 package termui
 
 import (
-	"image"
 	"fmt"
+	"image"
 
 	"github.com/nikarh/gotromino/tetris"
 	"github.com/nsf/termbox-go"
 )
-
 
 func Init() func() {
 	if err := termbox.Init(); err != nil {
@@ -19,18 +18,13 @@ func Init() func() {
 }
 
 func NewGame() bool {
-	g := tetris.NewGame(image.Pt(10, 22))
+	redraw := make(chan struct{})
+	g := tetris.NewGame(image.Pt(10, 22), redraw)
 
-	end := make(chan struct{})
 	go func() {
 		draw(g)
-		for {
-			select {
-			case <-g.Refresh:
-				draw(g)
-			case <-end:
-				break
-			}
+		for range redraw {
+			draw(g)
 		}
 	}()
 
@@ -38,41 +32,31 @@ func NewGame() bool {
 		e := termbox.PollEvent()
 
 		if e.Type != termbox.EventKey {
-			g.Refresh <- struct {}{}
+			redraw <- struct{}{}
 			continue
 		}
 
 		if !g.End && e.Ch == 'p' {
 			g.Paused = !g.Paused
-			g.Refresh <- struct {}{}
+			redraw <- struct{}{}
 		}
 
 		switch e.Key {
 		case termbox.KeyArrowLeft:
-			g.Actions <- func() {
-				g.Move(tetris.Left)
-			}
+			g.Move(tetris.Left)
 		case termbox.KeyArrowRight:
-			g.Actions <- func() {
-				g.Move(tetris.Right)
-			}
+			g.Move(tetris.Right)
 		case termbox.KeyArrowDown:
-			g.Actions <- func() {
-				g.SoftDrop()
-			}
+			g.SoftDrop()
 		case termbox.KeyArrowUp:
-			g.Actions <- func() {
-				g.Rotate()
-			}
+			g.Rotate(tetris.Right)
 		case termbox.KeySpace:
-			g.Actions <- func() {
-				g.HardDrop()
-			}
+			g.HardDrop()
 		case termbox.KeyEsc:
 			return false
 		case termbox.KeyEnter:
 			if g.End {
-				close(end)
+				close(redraw)
 				return true
 			}
 		}
@@ -97,7 +81,7 @@ func draw(g *tetris.Game) {
 	tbprintString("Next tetromino", sm.Add(image.Pt(-8, 0)))
 	tbprintRect(image.Rect(sm.X-5, sm.Y+1, sm.X+4, sm.Y+1+5))
 	tbfill(image.Rect(sm.X-4, sm.Y+2, sm.X+4, sm.Y+2+4), termbox.ColorDefault)
-	tbprintPieceNoOffset(g.Next, sm.Add(image.Pt(-int(g.Next.Tetromino.Dim), 3)))
+	tbprintTetromino(g.Next, sm.Add(image.Pt(-int(g.Next.Dim), 3)))
 
 	// Score
 	dx, dy := -11, 8

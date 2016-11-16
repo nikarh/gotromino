@@ -30,15 +30,15 @@ func tbprintPiece(p tetris.Piece, offset image.Point) {
 	for _, pt := range p.Tetromino.Points {
 		x, y := int(pt>>4)+p.Pos.X, int(pt&0x0F)+p.Pos.Y
 		if y > 1 {
-			tbprintBlock(image.Pt(x*2+offset.X, y+offset.Y-2), p.Color)
+			tbprintBlock(image.Pt(x*2+offset.X, y+offset.Y-2), p.Tetromino.Color)
 		}
 	}
 }
 
-func tbprintPieceNoOffset(p tetris.Piece, offset image.Point) {
-	for _, pt := range p.Tetromino.Points {
+func tbprintTetromino(t tetris.Tetromino, offset image.Point) {
+	for _, pt := range t.Points {
 		x, y := int(pt>>4), int(pt&0x0F)
-		tbprintBlock(image.Pt(x*2+offset.X, y+offset.Y), p.Color)
+		tbprintBlock(image.Pt(x*2+offset.X, y+offset.Y), t.Color)
 	}
 }
 

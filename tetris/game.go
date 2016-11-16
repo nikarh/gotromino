@@ -16,22 +16,15 @@ var (
 type Piece struct {
 	Pos       image.Point
 	Tetromino Tetromino
-	Color     uint8
 }
 
-func NewPiece(fieldWidth int) Piece {
-	i := rand.Intn(len(tetrominos))
-	tetromino := tetrominos[i]
-	return Piece{
-		Pos:       image.Pt((fieldWidth-int(tetromino.Dim))/2, 0),
-		Tetromino: tetromino,
-		Color:     uint8(i + 2),
-	}
+func randomTetromino() Tetromino {
+	return tetrominos[rand.Intn(len(tetrominos))]
 }
 
 type Game struct {
+	Next  Tetromino
 	Piece Piece
-	Next  Piece
 	Field Field
 
 	Level uint8
@@ -41,8 +34,10 @@ type Game struct {
 	Paused bool
 	End    bool
 
-	Refresh chan struct{}
-	Actions chan func()
+	busy bool
+
+	redraw chan struct{}
+	action chan func()
 }
 
 func newTicker(level uint8) *time.Ticker {
@@ -50,18 +45,22 @@ func newTicker(level uint8) *time.Ticker {
 	return time.NewTicker(time.Duration(speed) * time.Millisecond)
 }
 
-func NewGame(size image.Point) *Game {
+func NewGame(size image.Point, redraw chan struct{}) *Game {
 	g := &Game{
-		Field: NewField(size),
-		Piece: NewPiece(size.X),
-		Next:  NewPiece(size.X),
+		Field: newField(size),
+		Next:  randomTetromino(),
 
-		Refresh: make(chan struct{}),
-		Actions: make(chan func()),
+		redraw: redraw,
+		action: make(chan func()),
 	}
+
+	g.nextPiece()
 
 	ticker := newTicker(g.Level)
 	go (func() {
+		defer ticker.Stop()
+		defer close(g.action)
+
 		for {
 			select {
 			case <-ticker.C:
@@ -69,28 +68,33 @@ func NewGame(size image.Point) *Game {
 					continue
 				}
 				if g.End = !g.tick(); g.End {
-					ticker.Stop()
+					g.redraw <- struct{}{}
+					return
 				} else if lvl := uint8(g.Lines) / 10; lvl != g.Level {
 					g.Level = lvl
 					ticker.Stop()
 					ticker = newTicker(g.Level)
 				}
-				g.Refresh <- struct{}{}
-			case action := <-g.Actions:
-				if g.End || g.Paused {
-					continue
-				}
+			case action := <-g.action:
 				action()
-				g.Refresh <- struct{}{}
 			}
+			g.redraw <- struct{}{}
 		}
 	})()
 
 	return g
 }
 
+func (g *Game) nextPiece() {
+	g.Piece = Piece{
+		Pos:       image.Pt((g.Field.Size.X-int(g.Next.Dim))/2, 0),
+		Tetromino: g.Next,
+	}
+	g.Next = randomTetromino()
+}
+
 func (g *Game) tick() bool {
-	if !g.Move(Down) {
+	if !g.move(Down) {
 		g.Field.Put(g.Piece)
 
 		c := g.Field.FindCompleted()
@@ -101,12 +105,10 @@ func (g *Game) tick() bool {
 			return false
 		}
 
-		if !g.Field.Fits(g.Next.Tetromino, g.Next.Pos) {
+		g.nextPiece()
+		if !g.Field.Fits(g.Piece.Tetromino, g.Piece.Pos) {
 			return false
 		}
-
-		g.Piece = g.Next
-		g.Next = NewPiece(g.Field.Size.X)
 	}
 
 	return true
@@ -127,16 +129,7 @@ func (g *Game) addScore(lines uint32) {
 	}
 }
 
-func (g *Game) Rotate() bool {
-	t := g.Piece.Tetromino.Rotate()
-	if !g.Field.Fits(t, g.Piece.Pos) {
-		return false
-	}
-	g.Piece.Tetromino = t
-	return true
-}
-
-func (g *Game) Move(d image.Point) bool {
+func (g *Game) move(d image.Point) bool {
 	pos := g.Piece.Pos.Add(d)
 	if !g.Field.Fits(g.Piece.Tetromino, pos) {
 		return false
@@ -146,19 +139,48 @@ func (g *Game) Move(d image.Point) bool {
 	return true
 }
 
-func (g *Game) SoftDrop() {
-	if g.Move(Down) {
-		g.Score += 1
+func (g *Game) act(f func()) {
+	if g.busy || g.Paused || g.End {
+		return
 	}
+	g.action <- f
+}
+
+func (g *Game) Rotate(d image.Point) {
+	g.act(func() {
+		rotated := g.Piece.Tetromino.Rotate(d)
+		if !g.Field.Fits(rotated, g.Piece.Pos) {
+			return
+		}
+		g.Piece.Tetromino = rotated
+	})
+}
+
+func (g *Game) Move(d image.Point) {
+	g.act(func() {
+		g.move(d)
+	})
+}
+
+func (g *Game) SoftDrop() {
+	g.act(func() {
+		if g.move(Down) {
+			g.Score += 1
+		}
+	})
 }
 
 func (g *Game) HardDrop() {
-	t := time.NewTicker(time.Millisecond * 10)
-	for g.Move(Down) {
-		g.Score += 2
-		g.Refresh <- struct{}{}
-		<-t.C
-	}
-	t.Stop()
-	g.tick()
+	g.act(func() {
+		g.busy = true
+		t := time.NewTicker(time.Millisecond * 10)
+		for g.move(Down) {
+			g.Score += 2
+			g.redraw <- struct{}{}
+			<-t.C
+		}
+		t.Stop()
+		g.tick()
+		g.busy = false
+	})
 }
