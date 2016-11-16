@@ -81,6 +81,7 @@ func NewGame(size image.Point) *Game {
 					continue
 				}
 				action()
+				g.Refresh <- struct{}{}
 			}
 		}
 	})()
