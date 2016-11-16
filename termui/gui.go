@@ -2,9 +2,6 @@ package termui
 
 import (
 	"image"
-
-	"os"
-
 	"fmt"
 
 	"github.com/nikarh/gotromino/tetris"
@@ -29,8 +26,7 @@ func Init() func() {
 	}
 }
 
-func Game() {
-REPLAY:
+func NewGame() bool {
 	g := tetris.NewGame(image.Pt(10, 22))
 	for {
 		draw(g)
@@ -66,10 +62,10 @@ REPLAY:
 					g.HardDrop()
 				}
 			case termbox.KeyEsc:
-				os.Exit(0)
+				return false
 			case termbox.KeyEnter:
 				if g.End {
-					goto REPLAY
+					return true
 				}
 			}
 		case <-g.Refresh:

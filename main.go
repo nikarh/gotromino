@@ -13,5 +13,5 @@ func main() {
 	destroy := termui.Init()
 	defer destroy()
 
-	termui.Game()
+	for termui.NewGame() {}
 }
