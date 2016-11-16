@@ -4,15 +4,15 @@ import (
 	"math/rand"
 	"time"
 
-	"github.com/nikarh/gotromino/termui"
+	"github.com/nikarh/gotromino/ui"
 )
 
 func main() {
 	rand.Seed(time.Now().UnixNano())
 
-	destroy := termui.Init()
+	destroy := ui.Init()
 	defer destroy()
 
-	for termui.NewGame() {
+	for ui.NewGame() {
 	}
 }

@@ -1,10 +1,10 @@
-package termui
+package ui
 
 import (
 	"fmt"
 	"image"
 
-	"github.com/nikarh/gotromino/tetris"
+	"github.com/nikarh/gotromino/game"
 	"github.com/nsf/termbox-go"
 )
 
@@ -25,7 +25,7 @@ func Init() func() {
 
 func NewGame() bool {
 	redraw := make(chan struct{})
-	g := tetris.NewGame(image.Pt(10, 22), redraw)
+	g := game.New(image.Pt(10, 22), redraw)
 
 	go func() {
 		draw(g)
@@ -52,20 +52,20 @@ func NewGame() bool {
 			options.shadows = !options.shadows
 			redraw <- struct{}{}
 		case 'z':
-			g.Rotate(tetris.Left)
+			g.Rotate(game.Left)
 		case 'x':
-			g.Rotate(tetris.Right)
+			g.Rotate(game.Right)
 		}
 
 		switch e.Key {
 		case termbox.KeyArrowLeft:
-			g.Move(tetris.Left)
+			g.Move(game.Left)
 		case termbox.KeyArrowRight:
-			g.Move(tetris.Right)
+			g.Move(game.Right)
 		case termbox.KeyArrowDown:
 			g.SoftDrop()
 		case termbox.KeyArrowUp:
-			g.Rotate(tetris.Right)
+			g.Rotate(game.Right)
 		case termbox.KeySpace:
 			g.HardDrop()
 		case termbox.KeyEsc:
@@ -79,11 +79,11 @@ func NewGame() bool {
 	}
 }
 
-func draw(g *tetris.Game) {
+func draw(g *game.Game) {
 	termbox.Clear(termbox.ColorDefault, termbox.ColorDefault)
 
 	w, _ := termbox.Size()
-	fx, fy := g.Field.Size.X*2, g.Field.Size.Y-2
+	fx, fy := g.Matrix.Size.X*2, g.Matrix.Size.Y-2
 	sysw := 25
 
 	offset := image.Pt((w-fx-sysw-4)/2, 2)
@@ -97,7 +97,7 @@ func draw(g *tetris.Game) {
 	tbprintString("Next tetromino", sm.Add(image.Pt(-8, 0)))
 	tbprintRect(image.Rect(sm.X-5, sm.Y+1, sm.X+4, sm.Y+1+5))
 	tbfill(image.Rect(sm.X-4, sm.Y+2, sm.X+4, sm.Y+2+4), termbox.ColorDefault)
-	tbprintTetromino(g.Next, sm.Add(image.Pt(-int(g.Next.Dim), 3)))
+	tbprintPolyomino(g.Next, sm.Add(image.Pt(-int(g.Next.Dim), 3)))
 
 	// Score
 	dx, dy := -11, 8
@@ -116,10 +116,10 @@ func draw(g *tetris.Game) {
 	tbprintString("↓     - soft drop", sm.Add(image.Pt(dx, dy+5)))
 	tbprintString("space - hard drop", sm.Add(image.Pt(dx, dy+6)))
 
-	// Game field
+	// Game matrix
 	tbprintRect(image.Rect(offset.X, offset.Y+2, offset.X+fx+1, offset.Y+fy+2+1))
 	offset = offset.Add(image.Pt(1, 3))
-	tbprintField(g.Field, offset)
+	tbprintMatrix(g.Matrix, offset)
 	if options.shadows {
 		tbprintShadow(g.Shadow, offset)
 	}

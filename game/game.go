@@ -1,4 +1,4 @@
-package tetris
+package game
 
 import (
 	"image"
@@ -15,18 +15,18 @@ var (
 
 type Piece struct {
 	Pos       image.Point
-	Tetromino Tetromino
+	Polyomino Polyomino
 }
 
-func randomTetromino() Tetromino {
+func randomTetromino() Polyomino {
 	return tetrominos[rand.Intn(len(tetrominos))]
 }
 
 type Game struct {
-	Field  Field
+	Matrix Matrix
 	Piece  Piece
 	Shadow Piece
-	Next   Tetromino
+	Next   Polyomino
 
 	Level uint8
 	Lines uint32
@@ -46,10 +46,10 @@ func newTicker(level uint8) *time.Ticker {
 	return time.NewTicker(time.Duration(speed) * time.Millisecond)
 }
 
-func NewGame(size image.Point, redraw chan struct{}) *Game {
+func New(size image.Point, redraw chan struct{}) *Game {
 	g := &Game{
-		Field: newField(size),
-		Next:  randomTetromino(),
+		Matrix: newMatrix(size),
+		Next:   randomTetromino(),
 
 		redraw: redraw,
 		action: make(chan func()),
@@ -88,8 +88,8 @@ func NewGame(size image.Point, redraw chan struct{}) *Game {
 
 func (g *Game) nextPiece() {
 	g.Piece = Piece{
-		Pos:       image.Pt((g.Field.Size.X-int(g.Next.Dim))/2, 0),
-		Tetromino: g.Next,
+		Pos:       image.Pt((g.Matrix.Size.X-int(g.Next.Dim))/2, 0),
+		Polyomino: g.Next,
 	}
 	g.Next = randomTetromino()
 
@@ -98,18 +98,18 @@ func (g *Game) nextPiece() {
 
 func (g *Game) tick() bool {
 	if !g.move(Down) {
-		g.Field.Put(g.Piece)
+		g.Matrix.Put(g.Piece.Polyomino, g.Piece.Pos)
 
-		c := g.Field.FindCompleted()
+		c := g.Matrix.FullLines()
 		g.addScore(uint32(len(c)))
-		g.Field.Clear(c)
+		g.Matrix.Clear(c)
 
-		if len(c) < 2 && g.Field.Full() {
+		if len(c) < 2 && g.Matrix.Full() {
 			return false
 		}
 
 		g.nextPiece()
-		if !g.Field.Fits(g.Piece.Tetromino, g.Piece.Pos) {
+		if !g.Matrix.Fits(g.Piece.Polyomino, g.Piece.Pos) {
 			return false
 		}
 	}
@@ -119,7 +119,7 @@ func (g *Game) tick() bool {
 
 func (g *Game) findShadow() {
 	g.Shadow = g.Piece
-	for p := g.Shadow.Pos; g.Field.Fits(g.Shadow.Tetromino, p); p = p.Add(image.Pt(0, 1)) {
+	for p := g.Shadow.Pos; g.Matrix.Fits(g.Shadow.Polyomino, p); p = p.Add(image.Pt(0, 1)) {
 		g.Shadow.Pos = p
 	}
 }
@@ -141,7 +141,7 @@ func (g *Game) addScore(lines uint32) {
 
 func (g *Game) move(d image.Point) bool {
 	pos := g.Piece.Pos.Add(d)
-	if !g.Field.Fits(g.Piece.Tetromino, pos) {
+	if !g.Matrix.Fits(g.Piece.Polyomino, pos) {
 		return false
 	}
 	g.Piece.Pos = pos
@@ -162,11 +162,11 @@ func (g *Game) act(f func()) {
 
 func (g *Game) Rotate(d image.Point) {
 	g.act(func() {
-		rotated := g.Piece.Tetromino.Rotate(d)
-		if !g.Field.Fits(rotated, g.Piece.Pos) {
+		rotated := g.Piece.Polyomino.Rotate(d)
+		if !g.Matrix.Fits(rotated, g.Piece.Pos) {
 			return
 		}
-		g.Piece.Tetromino = rotated
+		g.Piece.Polyomino = rotated
 		g.findShadow()
 	})
 }

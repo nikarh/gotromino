@@ -1,28 +1,28 @@
-package tetris
+package game
 
 import (
 	"image"
 )
 
-type Field struct {
+type Matrix struct {
 	Size image.Point
 	Raw  [][]uint8
 }
 
-func newField(size image.Point) Field {
+func newMatrix(size image.Point) Matrix {
 	raw := make([][]uint8, size.Y)
 	for y := 0; y < size.Y; y++ {
 		raw[y] = make([]uint8, size.X)
 	}
 
-	return Field{
+	return Matrix{
 		Size: size,
 		Raw:  raw,
 	}
 }
 
-func (t Field) Fits(ti Tetromino, pos image.Point) bool {
-	for _, pt := range ti.Points {
+func (t Matrix) Fits(p Polyomino, pos image.Point) bool {
+	for _, pt := range p.Points {
 		x, y := pos.X+int(pt>>4), pos.Y+int(pt&0x0F)
 		if x < 0 || y < 0 || x >= t.Size.X || y >= t.Size.Y {
 			return false
@@ -34,14 +34,14 @@ func (t Field) Fits(ti Tetromino, pos image.Point) bool {
 	return true
 }
 
-func (t Field) Put(p Piece) {
-	for _, pt := range p.Tetromino.Points {
-		x, y := p.Pos.X+int(pt>>4), p.Pos.Y+int(pt&0x0F)
-		t.Raw[y][x] = p.Tetromino.Color
+func (t Matrix) Put(p Polyomino, pos image.Point) {
+	for _, pt := range p.Points {
+		x, y := pos.X+int(pt>>4), pos.Y+int(pt&0x0F)
+		t.Raw[y][x] = p.Color
 	}
 }
 
-func (t Field) FindCompleted() []int {
+func (t Matrix) FullLines() []int {
 	result := make([]int, 0)
 
 	for y := 0; y < t.Size.Y; y++ {
@@ -60,7 +60,7 @@ func (t Field) FindCompleted() []int {
 	return result
 }
 
-func (t Field) Clear(lines []int) {
+func (t Matrix) Clear(lines []int) {
 	for i, cy := range lines {
 		for y := cy; y > i; y-- {
 			t.Raw[y] = t.Raw[y-1]
@@ -69,7 +69,7 @@ func (t Field) Clear(lines []int) {
 	}
 }
 
-func (f Field) Full() bool {
+func (f Matrix) Full() bool {
 	for y := 1; y >= 0; y-- {
 		for x := 0; x < f.Size.X; x++ {
 			if f.Raw[y][x] > 0 {

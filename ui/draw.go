@@ -1,11 +1,11 @@
-package termui
+package ui
 
 import (
 	"image"
 
 	"strings"
 
-	"github.com/nikarh/gotromino/tetris"
+	"github.com/nikarh/gotromino/game"
 	"github.com/nsf/termbox-go"
 )
 
@@ -17,7 +17,7 @@ func tbprintString(msg string, offset image.Point) {
 	}
 }
 
-func tbprintField(f tetris.Field, offset image.Point) {
+func tbprintMatrix(f game.Matrix, offset image.Point) {
 	w, h := f.Size.X, f.Size.Y
 	for y := 2; y < h; y++ {
 		for x := 0; x < w; x++ {
@@ -26,17 +26,17 @@ func tbprintField(f tetris.Field, offset image.Point) {
 	}
 }
 
-func tbprintPiece(p tetris.Piece, offset image.Point) {
-	for _, pt := range p.Tetromino.Points {
+func tbprintPiece(p game.Piece, offset image.Point) {
+	for _, pt := range p.Polyomino.Points {
 		x, y := int(pt>>4)+p.Pos.X, int(pt&0x0F)+p.Pos.Y
 		if y > 1 {
-			tbprintBlock(image.Pt(x*2+offset.X, y+offset.Y-2), p.Tetromino.Color)
+			tbprintBlock(image.Pt(x*2+offset.X, y+offset.Y-2), p.Polyomino.Color)
 		}
 	}
 }
 
-func tbprintShadow(p tetris.Piece, offset image.Point) {
-	for _, pt := range p.Tetromino.Points {
+func tbprintShadow(p game.Piece, offset image.Point) {
+	for _, pt := range p.Polyomino.Points {
 		x, y := int(pt>>4)+p.Pos.X, int(pt&0x0F)+p.Pos.Y
 		if y > 1 {
 			tbprintShadowBlock(image.Pt(x*2+offset.X, y+offset.Y-2))
@@ -44,7 +44,7 @@ func tbprintShadow(p tetris.Piece, offset image.Point) {
 	}
 }
 
-func tbprintTetromino(t tetris.Tetromino, offset image.Point) {
+func tbprintPolyomino(t game.Polyomino, offset image.Point) {
 	for _, pt := range t.Points {
 		x, y := int(pt>>4), int(pt&0x0F)
 		tbprintBlock(image.Pt(x*2+offset.X, y+offset.Y), t.Color)
