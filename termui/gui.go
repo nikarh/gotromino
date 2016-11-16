@@ -110,9 +110,9 @@ func draw(g *tetris.Game) {
 	tbprintRect(image.Rect(sm.X-13, sm.Y+dy-1, sm.X+12, sm.Y+dy+7))
 	tbprintString("Esc   - exit", sm.Add(image.Pt(dx, dy)))
 	tbprintString("p     - pause", sm.Add(image.Pt(dx, dy+1)))
-	tbprintString("←     - move left", sm.Add(image.Pt(dx, dy+2)))
-	tbprintString("→     - move right", sm.Add(image.Pt(dx, dy+3)))
-	tbprintString("↑     - turn clockwise", sm.Add(image.Pt(dx, dy+4)))
+	tbprintString("←, →  - move", sm.Add(image.Pt(dx, dy+2)))
+	tbprintString("z, x  - turn", sm.Add(image.Pt(dx, dy+3)))
+	tbprintString("s     - toggle shadows", sm.Add(image.Pt(dx, dy+4)))
 	tbprintString("↓     - soft drop", sm.Add(image.Pt(dx, dy+5)))
 	tbprintString("space - hard drop", sm.Add(image.Pt(dx, dy+6)))
 
