@@ -161,5 +161,4 @@ func (g *Game) HardDrop() {
 	}
 	t.Stop()
 	g.tick()
-	g.Refresh <- struct{}{}
 }

@@ -8,19 +8,11 @@ import (
 	"github.com/nsf/termbox-go"
 )
 
-var eventQueue = make(chan termbox.Event)
 
 func Init() func() {
 	if err := termbox.Init(); err != nil {
 		panic(err)
 	}
-
-	go func() {
-		for {
-			eventQueue <- termbox.PollEvent()
-		}
-	}()
-
 	return func() {
 		termbox.Close()
 	}
@@ -28,47 +20,61 @@ func Init() func() {
 
 func NewGame() bool {
 	g := tetris.NewGame(image.Pt(10, 22))
-	for {
+
+	end := make(chan struct{})
+	go func() {
 		draw(g)
-		select {
-		case e := <-eventQueue:
-			if e.Type != termbox.EventKey {
-				continue
+		for {
+			select {
+			case <-g.Refresh:
+				draw(g)
+			case <-end:
+				break
 			}
+		}
+	}()
 
-			if !g.End && e.Ch == 'p' {
-				g.Paused = !g.Paused
-			}
+	for {
+		e := termbox.PollEvent()
 
-			switch e.Key {
-			case termbox.KeyArrowLeft:
-				g.Actions <- func() {
-					g.Move(tetris.Left)
-				}
-			case termbox.KeyArrowRight:
-				g.Actions <- func() {
-					g.Move(tetris.Right)
-				}
-			case termbox.KeyArrowDown:
-				g.Actions <- func() {
-					g.SoftDrop()
-				}
-			case termbox.KeyArrowUp:
-				g.Actions <- func() {
-					g.Rotate()
-				}
-			case termbox.KeySpace:
-				g.Actions <- func() {
-					g.HardDrop()
-				}
-			case termbox.KeyEsc:
-				return false
-			case termbox.KeyEnter:
-				if g.End {
-					return true
-				}
+		if e.Type != termbox.EventKey {
+			g.Refresh <- struct {}{}
+			continue
+		}
+
+		if !g.End && e.Ch == 'p' {
+			g.Paused = !g.Paused
+			g.Refresh <- struct {}{}
+		}
+
+		switch e.Key {
+		case termbox.KeyArrowLeft:
+			g.Actions <- func() {
+				g.Move(tetris.Left)
 			}
-		case <-g.Refresh:
+		case termbox.KeyArrowRight:
+			g.Actions <- func() {
+				g.Move(tetris.Right)
+			}
+		case termbox.KeyArrowDown:
+			g.Actions <- func() {
+				g.SoftDrop()
+			}
+		case termbox.KeyArrowUp:
+			g.Actions <- func() {
+				g.Rotate()
+			}
+		case termbox.KeySpace:
+			g.Actions <- func() {
+				g.HardDrop()
+			}
+		case termbox.KeyEsc:
+			return false
+		case termbox.KeyEnter:
+			if g.End {
+				close(end)
+				return true
+			}
 		}
 	}
 }
