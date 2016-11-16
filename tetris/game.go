@@ -23,9 +23,10 @@ func randomTetromino() Tetromino {
 }
 
 type Game struct {
-	Next  Tetromino
-	Piece Piece
-	Field Field
+	Field  Field
+	Piece  Piece
+	Shadow Piece
+	Next   Tetromino
 
 	Level uint8
 	Lines uint32
@@ -91,6 +92,8 @@ func (g *Game) nextPiece() {
 		Tetromino: g.Next,
 	}
 	g.Next = randomTetromino()
+
+	g.findShadow()
 }
 
 func (g *Game) tick() bool {
@@ -112,6 +115,13 @@ func (g *Game) tick() bool {
 	}
 
 	return true
+}
+
+func (g *Game) findShadow() {
+	g.Shadow = g.Piece
+	for p := g.Shadow.Pos; g.Field.Fits(g.Shadow.Tetromino, p); p = p.Add(image.Pt(0, 1)) {
+		g.Shadow.Pos = p
+	}
 }
 
 func (g *Game) addScore(lines uint32) {
@@ -136,6 +146,10 @@ func (g *Game) move(d image.Point) bool {
 	}
 	g.Piece.Pos = pos
 
+	if d != Down {
+		g.findShadow()
+	}
+
 	return true
 }
 
@@ -153,6 +167,7 @@ func (g *Game) Rotate(d image.Point) {
 			return
 		}
 		g.Piece.Tetromino = rotated
+		g.findShadow()
 	})
 }
 

@@ -35,6 +35,15 @@ func tbprintPiece(p tetris.Piece, offset image.Point) {
 	}
 }
 
+func tbprintShadow(p tetris.Piece, offset image.Point) {
+	for _, pt := range p.Tetromino.Points {
+		x, y := int(pt>>4)+p.Pos.X, int(pt&0x0F)+p.Pos.Y
+		if y > 1 {
+			tbprintShadowBlock(image.Pt(x*2+offset.X, y+offset.Y-2))
+		}
+	}
+}
+
 func tbprintTetromino(t tetris.Tetromino, offset image.Point) {
 	for _, pt := range t.Points {
 		x, y := int(pt>>4), int(pt&0x0F)
@@ -46,6 +55,11 @@ func tbprintBlock(pos image.Point, color uint8) {
 	c := termbox.Attribute(color)
 	termbox.SetCell(pos.X, pos.Y, ' ', c, c)
 	termbox.SetCell(pos.X+1, pos.Y, ' ', c, c)
+}
+
+func tbprintShadowBlock(pos image.Point) {
+	termbox.SetCell(pos.X, pos.Y, '╳', termbox.ColorDefault, termbox.ColorDefault)
+	termbox.SetCell(pos.X+1, pos.Y, '╳', termbox.ColorDefault, termbox.ColorDefault)
 }
 
 func tbfill(rect image.Rectangle, color termbox.Attribute) {

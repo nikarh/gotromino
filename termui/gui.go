@@ -8,6 +8,12 @@ import (
 	"github.com/nsf/termbox-go"
 )
 
+var options = struct {
+	shadows bool
+}{
+	shadows: true,
+}
+
 func Init() func() {
 	if err := termbox.Init(); err != nil {
 		panic(err)
@@ -36,9 +42,19 @@ func NewGame() bool {
 			continue
 		}
 
-		if !g.End && e.Ch == 'p' {
-			g.Paused = !g.Paused
+		switch e.Ch {
+		case 'p':
+			if !g.End {
+				g.Paused = !g.Paused
+				redraw <- struct{}{}
+			}
+		case 's':
+			options.shadows = !options.shadows
 			redraw <- struct{}{}
+		case 'z':
+			g.Rotate(tetris.Left)
+		case 'x':
+			g.Rotate(tetris.Right)
 		}
 
 		switch e.Key {
@@ -104,6 +120,9 @@ func draw(g *tetris.Game) {
 	tbprintRect(image.Rect(offset.X, offset.Y+2, offset.X+fx+1, offset.Y+fy+2+1))
 	offset = offset.Add(image.Pt(1, 3))
 	tbprintField(g.Field, offset)
+	if options.shadows {
+		tbprintShadow(g.Shadow, offset)
+	}
 	tbprintPiece(g.Piece, offset)
 
 	dx = w / 2
