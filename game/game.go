@@ -3,7 +3,6 @@ package game
 import (
 	"image"
 	"math"
-	"math/rand"
 	"time"
 )
 
@@ -18,15 +17,11 @@ type Piece struct {
 	Polyomino Polyomino
 }
 
-func randomTetromino() Polyomino {
-	return tetrominos[rand.Intn(len(tetrominos))]
-}
-
 type Game struct {
-	Matrix Matrix
-	Piece  Piece
-	Shadow Piece
-	Next   Polyomino
+	Matrix    Matrix
+	Piece     Piece
+	Shadow    Piece
+	NextQueue *NextQueue
 
 	Level uint8
 	Lines uint32
@@ -48,8 +43,8 @@ func newTicker(level uint8) *time.Ticker {
 
 func New(size image.Point, redraw chan struct{}) *Game {
 	g := &Game{
-		Matrix: newMatrix(size),
-		Next:   randomTetromino(),
+		Matrix:    newMatrix(size),
+		NextQueue: newNextQueue(),
 
 		redraw: redraw,
 		action: make(chan func()),
@@ -87,11 +82,11 @@ func New(size image.Point, redraw chan struct{}) *Game {
 }
 
 func (g *Game) nextPiece() {
+	next := g.NextQueue.Take()
 	g.Piece = Piece{
-		Pos:       image.Pt((g.Matrix.Size.X-int(g.Next.Dim))/2, 0),
-		Polyomino: g.Next,
+		Pos:       image.Pt((g.Matrix.Size.X-int(next.Dim))/2, 0),
+		Polyomino: next,
 	}
-	g.Next = randomTetromino()
 
 	g.findShadow()
 }

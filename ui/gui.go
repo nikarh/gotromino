@@ -97,7 +97,7 @@ func draw(g *game.Game) {
 	tbprintString("Next tetromino", sm.Add(image.Pt(-8, 0)))
 	tbprintRect(image.Rect(sm.X-5, sm.Y+1, sm.X+4, sm.Y+1+5))
 	tbfill(image.Rect(sm.X-4, sm.Y+2, sm.X+4, sm.Y+2+4), termbox.ColorDefault)
-	tbprintPolyomino(g.Next, sm.Add(image.Pt(-int(g.Next.Dim), 3)))
+	tbprintPolyomino(g.NextQueue[0], sm.Add(image.Pt(-int(g.NextQueue[0].Dim), 3)))
 
 	// Score
 	dx, dy := -11, 8
