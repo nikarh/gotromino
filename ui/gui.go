@@ -84,37 +84,47 @@ func draw(g *game.Game) {
 
 	w, _ := termbox.Size()
 	fx, fy := g.Matrix.Size.X*2, g.Matrix.Size.Y-2
-	sysw := 25
+	sysw, queuew := 25, 13
 
-	offset := image.Pt((w-fx-sysw-4)/2, 2)
+	offset := image.Pt((w-fx-sysw-queuew-4)/2, 2)
 
-	tbprintRect(image.Rect(offset.X, offset.Y, offset.X+fx+sysw+1, offset.Y+fy+2+1))
-	tbprintRect(image.Rect(offset.X, offset.Y+2, offset.X+fx+sysw+1, offset.Y+fy+2+1))
+	tbprintRect(image.Rect(offset.X, offset.Y, offset.X+fx+sysw+queuew+1, offset.Y+fy+2+1))
+	tbprintRect(image.Rect(offset.X, offset.Y+2, offset.X+fx+sysw+queuew+1, offset.Y+fy+2+1))
 	tbprintString("Gotromino", offset.Add(image.Pt((fx+sysw)/2-3, 1)))
 
-	// Next piece info
-	sm := offset.Add(image.Pt(2+fx+sysw/2, 3))
-	tbprintString("Next tetromino", sm.Add(image.Pt(-8, 0)))
-	tbprintRect(image.Rect(sm.X-5, sm.Y+1, sm.X+4, sm.Y+1+5))
-	tbfill(image.Rect(sm.X-4, sm.Y+2, sm.X+4, sm.Y+2+4), termbox.ColorDefault)
-	tbprintPolyomino(g.NextQueue[0], sm.Add(image.Pt(-int(g.NextQueue[0].Dim), 3)))
+	// Queue
+	qo := offset.Add(image.Pt(fx+1, 2))
+	tbprintRect(image.Rect(qo.X, qo.Y, qo.X+queuew, qo.Y+fy+1))
+	tbprintString("Next", qo.Add(image.Pt(5, 1)))
 
+	tbprintRect(image.Rect(qo.X+2, qo.Y+2, qo.X+9+2, qo.Y+2+5))
+	tbfill(image.Rect(qo.X+3, qo.Y+3, qo.X+3+8, qo.Y+3+4), termbox.ColorDefault)
+	tbprintPolyomino(g.NextQueue[0], qo.Add(image.Pt(7-int(g.NextQueue[0].Dim), 4)))
+
+	for i := 1; i < len(g.NextQueue); i++ {
+		tbprintPolyomino(g.NextQueue[i], qo.Add(image.Pt(7-int(g.NextQueue[i].Dim), 6+i*3)))
+	}
+
+	sm := offset.Add(image.Pt(2+fx+sysw/2+queuew, 3))
 	// Score
-	dx, dy := -11, 8
+	dx, dy := -10, 1
 	tbprintString(fmt.Sprintf("Level: %d", g.Level), sm.Add(image.Pt(dx, dy)))
-	tbprintString(fmt.Sprintf("Lines: %d", g.Lines), sm.Add(image.Pt(dx, dy+1)))
+	tbprintString(fmt.Sprintf("Lines: %d", g.Lines), sm.Add(image.Pt(dx, dy+2)))
 	tbprintString(fmt.Sprintf("Score: %d", g.Score), sm.Add(image.Pt(dx, dy+3)))
 
 	// Controls
-	dx, dy = -11, 13
-	tbprintRect(image.Rect(sm.X-13, sm.Y+dy-1, sm.X+12, sm.Y+dy+7))
+	dx, dy = -11, 10
+	tbprintRect(image.Rect(sm.X-13, sm.Y+dy-1, sm.X+12, sm.Y+dy+10))
 	tbprintString("Esc   - exit", sm.Add(image.Pt(dx, dy)))
 	tbprintString("p     - pause", sm.Add(image.Pt(dx, dy+1)))
-	tbprintString("←, →  - move", sm.Add(image.Pt(dx, dy+2)))
-	tbprintString("z, x  - turn", sm.Add(image.Pt(dx, dy+3)))
-	tbprintString("s     - toggle shadows", sm.Add(image.Pt(dx, dy+4)))
-	tbprintString("↓     - soft drop", sm.Add(image.Pt(dx, dy+5)))
-	tbprintString("space - hard drop", sm.Add(image.Pt(dx, dy+6)))
+
+	tbprintString("←, →  - move", sm.Add(image.Pt(dx, dy+3)))
+	tbprintString("z     - turn CCW", sm.Add(image.Pt(dx, dy+4)))
+	tbprintString("x, →  - turn CW", sm.Add(image.Pt(dx, dy+5)))
+	tbprintString("↓     - soft drop", sm.Add(image.Pt(dx, dy+6)))
+	tbprintString("space - hard drop", sm.Add(image.Pt(dx, dy+7)))
+
+	tbprintString("s     - toggle shadows", sm.Add(image.Pt(dx, dy+9)))
 
 	// Game matrix
 	tbprintRect(image.Rect(offset.X, offset.Y+2, offset.X+fx+1, offset.Y+fy+2+1))

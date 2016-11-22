@@ -6,7 +6,7 @@ func randomTetromino() Polyomino {
 	return tetrominos[rand.Intn(len(tetrominos))]
 }
 
-type NextQueue [4]Polyomino
+type NextQueue [5]Polyomino
 
 func newNextQueue() *NextQueue {
 	queue := new(NextQueue)
