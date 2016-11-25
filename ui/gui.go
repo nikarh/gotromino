@@ -90,19 +90,21 @@ func draw(g *game.Game) {
 
 	tbprintRect(image.Rect(offset.X, offset.Y, offset.X+fx+sysw+queuew+1, offset.Y+fy+2+1))
 	tbprintRect(image.Rect(offset.X, offset.Y+2, offset.X+fx+sysw+queuew+1, offset.Y+fy+2+1))
-	tbprintString("Gotromino", offset.Add(image.Pt((fx+sysw)/2-3, 1)))
+	tbprintString("Gotromino", offset.Add(image.Pt((fx+sysw+queuew)/2-3, 1)))
 
 	// Queue
 	qo := offset.Add(image.Pt(fx+1, 2))
 	tbprintRect(image.Rect(qo.X, qo.Y, qo.X+queuew, qo.Y+fy+1))
 	tbprintString("Next", qo.Add(image.Pt(5, 1)))
 
+
+	next := g.Queue.Polyominoes
 	tbprintRect(image.Rect(qo.X+2, qo.Y+2, qo.X+9+2, qo.Y+2+5))
 	tbfill(image.Rect(qo.X+3, qo.Y+3, qo.X+3+8, qo.Y+3+4), termbox.ColorDefault)
-	tbprintPolyomino(g.NextQueue[0], qo.Add(image.Pt(7-int(g.NextQueue[0].Dim), 4)))
+	tbprintPolyomino(next[0], qo.Add(image.Pt(7-int(next[0].Dim), 4)))
 
-	for i := 1; i < len(g.NextQueue); i++ {
-		tbprintPolyomino(g.NextQueue[i], qo.Add(image.Pt(7-int(g.NextQueue[i].Dim), 6+i*3)))
+	for i := 1; i < len(next); i++ {
+		tbprintPolyomino(next[i], qo.Add(image.Pt(7-int(next[i].Dim), 6+i*3)))
 	}
 
 	sm := offset.Add(image.Pt(2+fx+sysw/2+queuew, 3))

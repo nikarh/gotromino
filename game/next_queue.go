@@ -1,27 +1,47 @@
 package game
 
-import "math/rand"
+import (
+	"math/rand"
+)
 
-func randomTetromino() Polyomino {
-	return tetrominos[rand.Intn(len(tetrominos))]
+type Queue struct{
+	Polyominoes [5]Polyomino
+	bag []Polyomino
 }
 
-type NextQueue [5]Polyomino
+func newQueue() *Queue {
+	q := new(Queue)
+	q.newBag()
 
-func newNextQueue() *NextQueue {
-	queue := new(NextQueue)
-	for i := range queue {
-		queue[i] = randomTetromino()
+	next := q.bag[:5]
+	q.bag = q.bag[5:]
+	for i := range q.Polyominoes {
+		q.Polyominoes[i] = next[i]
 	}
-	return queue
+	return q
 }
 
-func (n *NextQueue) Take() Polyomino {
-	p := n[0]
-	for i := 1; i < len(n); i++ {
-		n[i-1] = n[i]
+func (q *Queue) newBag() {
+	l := len(tetrominoes)
+	q.bag = make([]Polyomino, l)
+
+	for i, j := range rand.Perm(l) {
+		q.bag[i] = tetrominoes[j]
 	}
-	n[len(n)-1] = randomTetromino()
+}
+
+func (q *Queue) Take() Polyomino {
+	p := q.Polyominoes[0]
+	for i := 1; i < len(q.Polyominoes); i++ {
+		q.Polyominoes[i-1] = q.Polyominoes[i]
+	}
+
+	if len(q.bag) == 0 {
+		q.newBag()
+	}
+
+	q.Polyominoes[len(q.Polyominoes)-1] = q.bag[0]
+	q.bag = q.bag[1:]
 
 	return p
 }

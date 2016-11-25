@@ -18,19 +18,19 @@ type Piece struct {
 }
 
 type Game struct {
-	Matrix    Matrix
-	Piece     Piece
-	Shadow    Piece
-	NextQueue *NextQueue
+	Matrix Matrix
+	Piece  Piece
+	Shadow Piece
+	Queue  *Queue
 
-	Level uint8
-	Lines uint32
-	Score uint32
+	Level  uint8
+	Lines  uint32
+	Score  uint32
 
 	Paused bool
 	End    bool
 
-	busy bool
+	busy   bool
 
 	redraw chan struct{}
 	action chan func()
@@ -44,7 +44,7 @@ func newTicker(level uint8) *time.Ticker {
 func New(size image.Point, redraw chan struct{}) *Game {
 	g := &Game{
 		Matrix:    newMatrix(size),
-		NextQueue: newNextQueue(),
+		Queue: newQueue(),
 
 		redraw: redraw,
 		action: make(chan func()),
@@ -82,7 +82,7 @@ func New(size image.Point, redraw chan struct{}) *Game {
 }
 
 func (g *Game) nextPiece() {
-	next := g.NextQueue.Take()
+	next := g.Queue.Take()
 	g.Piece = Piece{
 		Pos:       image.Pt((g.Matrix.Size.X-int(next.Dim))/2, 0),
 		Polyomino: next,

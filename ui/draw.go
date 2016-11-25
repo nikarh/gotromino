@@ -9,6 +9,16 @@ import (
 	"github.com/nsf/termbox-go"
 )
 
+var colorTable = map[rune]termbox.Attribute {
+	'I': termbox.ColorCyan,
+	'O': termbox.ColorYellow,
+	'T': termbox.ColorMagenta,
+	'S': termbox.ColorGreen,
+	'Z': termbox.ColorRed,
+	'J': termbox.ColorBlue,
+	'L': termbox.ColorWhite,
+}
+
 func tbprintString(msg string, offset image.Point) {
 	i := 0
 	for _, c := range msg {
@@ -21,7 +31,7 @@ func tbprintMatrix(f game.Matrix, offset image.Point) {
 	w, h := f.Size.X, f.Size.Y
 	for y := 2; y < h; y++ {
 		for x := 0; x < w; x++ {
-			tbprintBlock(image.Pt(x*2+offset.X, y+offset.Y-2), f.Raw[y][x])
+			tbprintBlock(image.Pt(x*2+offset.X, y+offset.Y-2), colorTable[f.Raw[y][x]])
 		}
 	}
 }
@@ -30,7 +40,7 @@ func tbprintPiece(p game.Piece, offset image.Point) {
 	for _, pt := range p.Polyomino.Points {
 		x, y := int(pt>>4)+p.Pos.X, int(pt&0x0F)+p.Pos.Y
 		if y > 1 {
-			tbprintBlock(image.Pt(x*2+offset.X, y+offset.Y-2), p.Polyomino.Color)
+			tbprintBlock(image.Pt(x*2+offset.X, y+offset.Y-2), colorTable[p.Polyomino.Id])
 		}
 	}
 }
@@ -47,12 +57,11 @@ func tbprintShadow(p game.Piece, offset image.Point) {
 func tbprintPolyomino(t game.Polyomino, offset image.Point) {
 	for _, pt := range t.Points {
 		x, y := int(pt>>4), int(pt&0x0F)
-		tbprintBlock(image.Pt(x*2+offset.X, y+offset.Y), t.Color)
+		tbprintBlock(image.Pt(x*2+offset.X, y+offset.Y), colorTable[t.Id])
 	}
 }
 
-func tbprintBlock(pos image.Point, color uint8) {
-	c := termbox.Attribute(color)
+func tbprintBlock(pos image.Point, c termbox.Attribute) {
 	termbox.SetCell(pos.X, pos.Y, ' ', c, c)
 	termbox.SetCell(pos.X+1, pos.Y, ' ', c, c)
 }
@@ -105,7 +114,9 @@ func tbInfo(msg string, rect image.Rectangle) {
 
 	lines := strings.Split(msg, "\n")
 	for i, line := range lines {
-		tbprintString(line, image.Pt(rect.Min.X+(rect.Dx()-len(line))/2, rect.Min.Y+(rect.Dy()-len(lines)+1)/2+i))
+		tbprintString(line,
+			image.Pt(rect.Min.X+(rect.Dx()-len(line))/2,
+			rect.Min.Y+(rect.Dy()-len(lines)+1)/2+i))
 	}
 
 }
