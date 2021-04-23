@@ -1,6 +1,7 @@
 package main
 
 import (
+	"log"
 	"math/rand"
 	"time"
 
@@ -10,9 +11,17 @@ import (
 func main() {
 	rand.Seed(time.Now().UnixNano())
 
-	destroy := ui.Init()
-	defer destroy()
+	screen, err := ui.Init()
+	if err != nil {
+		log.Panic(err)
+	}
 
-	for ui.NewGame() {
+	if err := screen.Init(); err != nil {
+		log.Panic(err)
+	}
+
+	defer screen.Fini()
+
+	for ui.NewGame(screen) {
 	}
 }

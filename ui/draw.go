@@ -1,122 +1,125 @@
 package ui
 
 import (
+	"github.com/gdamore/tcell"
+	"github.com/nikarh/gotromino/game"
 	"image"
 
 	"strings"
-
-	"github.com/nikarh/gotromino/game"
-	"github.com/nsf/termbox-go"
 )
 
-var colorTable = map[rune]termbox.Attribute {
-	'I': termbox.ColorCyan,
-	'O': termbox.ColorYellow,
-	'T': termbox.ColorMagenta,
-	'S': termbox.ColorGreen,
-	'Z': termbox.ColorRed,
-	'J': termbox.ColorBlue,
-	'L': termbox.ColorWhite,
+var colorTable = map[rune]tcell.Color{
+	'I': tcell.ColorAqua,
+	'O': tcell.ColorYellow,
+	'T': tcell.ColorFuchsia,
+	'S': tcell.ColorGreen,
+	'Z': tcell.ColorRed,
+	'J': tcell.ColorBlue,
+	'L': tcell.ColorWhite,
 }
 
-func tbprintString(msg string, offset image.Point) {
+type Screen struct {
+	tcell.Screen
+}
+
+func (s Screen) tbPrintString(msg string, offset image.Point) {
 	i := 0
 	for _, c := range msg {
-		termbox.SetCell(offset.X+i, offset.Y, c, termbox.ColorDefault, termbox.ColorDefault)
+		s.SetCell(offset.X+i, offset.Y, tcell.StyleDefault, c)
 		i++
 	}
 }
 
-func tbprintMatrix(f game.Matrix, offset image.Point) {
+func (s Screen) tbPrintMatrix(f game.Matrix, offset image.Point) {
 	w, h := f.Size.X, f.Size.Y
 	for y := 2; y < h; y++ {
 		for x := 0; x < w; x++ {
-			tbprintBlock(image.Pt(x*2+offset.X, y+offset.Y-2), colorTable[f.Raw[y][x]])
+			s.tbPrintBlock(image.Pt(x*2+offset.X, y+offset.Y-2), colorTable[f.Raw[y][x]])
 		}
 	}
 }
 
-func tbprintPiece(p game.Piece, offset image.Point) {
+func (s Screen) tbPrintPiece(p game.Piece, offset image.Point) {
 	for _, pt := range p.Polyomino.Points {
 		x, y := int(pt>>4)+p.Pos.X, int(pt&0x0F)+p.Pos.Y
 		if y > 1 {
-			tbprintBlock(image.Pt(x*2+offset.X, y+offset.Y-2), colorTable[p.Polyomino.Id])
+			s.tbPrintBlock(image.Pt(x*2+offset.X, y+offset.Y-2), colorTable[p.Polyomino.Id])
 		}
 	}
 }
 
-func tbprintShadow(p game.Piece, offset image.Point) {
+func (s Screen) tbPrintShadow(p game.Piece, offset image.Point) {
 	for _, pt := range p.Polyomino.Points {
 		x, y := int(pt>>4)+p.Pos.X, int(pt&0x0F)+p.Pos.Y
 		if y > 1 {
-			tbprintShadowBlock(image.Pt(x*2+offset.X, y+offset.Y-2))
+			s.tbPrintShadowBlock(image.Pt(x*2+offset.X, y+offset.Y-2))
 		}
 	}
 }
 
-func tbprintPolyomino(t game.Polyomino, offset image.Point) {
+func (s Screen) tbPrintPolyomino(t game.Polyomino, offset image.Point) {
 	for _, pt := range t.Points {
 		x, y := int(pt>>4), int(pt&0x0F)
-		tbprintBlock(image.Pt(x*2+offset.X, y+offset.Y), colorTable[t.Id])
+		s.tbPrintBlock(image.Pt(x*2+offset.X, y+offset.Y), colorTable[t.Id])
 	}
 }
 
-func tbprintBlock(pos image.Point, c termbox.Attribute) {
-	termbox.SetCell(pos.X, pos.Y, ' ', c, c)
-	termbox.SetCell(pos.X+1, pos.Y, ' ', c, c)
+func (s Screen) tbPrintBlock(pos image.Point, color tcell.Color) {
+	s.SetCell(pos.X, pos.Y, tcell.StyleDefault.Background(color), ' ')
+	s.SetCell(pos.X+1, pos.Y, tcell.StyleDefault.Background(color), ' ')
 }
 
-func tbprintShadowBlock(pos image.Point) {
-	termbox.SetCell(pos.X, pos.Y, '╳', termbox.ColorDefault, termbox.ColorDefault)
-	termbox.SetCell(pos.X+1, pos.Y, '╳', termbox.ColorDefault, termbox.ColorDefault)
+func (s Screen) tbPrintShadowBlock(pos image.Point) {
+	s.SetCell(pos.X, pos.Y, tcell.StyleDefault, '╳')
+	s.SetCell(pos.X+1, pos.Y, tcell.StyleDefault, '╳')
 }
 
-func tbfill(rect image.Rectangle, color termbox.Attribute) {
+func (s Screen) tbFill(rect image.Rectangle, color tcell.Color) {
 	for y := rect.Min.Y; y < rect.Max.Y; y++ {
 		for x := rect.Min.X; x < rect.Max.X; x++ {
-			termbox.SetCell(x, y, ' ', color, color)
+			s.SetCell(x, y, tcell.StyleDefault.Background(color), ' ')
 		}
 	}
 }
 
-func tbprintRect(rect image.Rectangle) {
-	termbox.SetCell(rect.Min.X, rect.Min.Y, '┌', termbox.ColorDefault, termbox.ColorDefault)
-	termbox.SetCell(rect.Max.X, rect.Min.Y, '┐', termbox.ColorDefault, termbox.ColorDefault)
-	termbox.SetCell(rect.Min.X, rect.Max.Y, '└', termbox.ColorDefault, termbox.ColorDefault)
-	termbox.SetCell(rect.Max.X, rect.Max.Y, '┘', termbox.ColorDefault, termbox.ColorDefault)
+func (s Screen) tbPrintRect(rect image.Rectangle) {
+	s.SetCell(rect.Min.X, rect.Min.Y, tcell.StyleDefault, '┌')
+	s.SetCell(rect.Max.X, rect.Min.Y, tcell.StyleDefault, '┐')
+	s.SetCell(rect.Min.X, rect.Max.Y, tcell.StyleDefault, '└')
+	s.SetCell(rect.Max.X, rect.Max.Y, tcell.StyleDefault, '┘')
 
 	for x := rect.Min.X + 1; x < rect.Max.X; x++ {
-		termbox.SetCell(x, rect.Min.Y, '─', termbox.ColorDefault, termbox.ColorDefault)
-		termbox.SetCell(x, rect.Max.Y, '─', termbox.ColorDefault, termbox.ColorDefault)
+		s.SetCell(x, rect.Min.Y, tcell.StyleDefault, '─')
+		s.SetCell(x, rect.Max.Y, tcell.StyleDefault, '─')
 	}
 	for y := rect.Min.Y + 1; y < rect.Max.Y; y++ {
-		termbox.SetCell(rect.Min.X, y, '│', termbox.ColorDefault, termbox.ColorDefault)
-		termbox.SetCell(rect.Max.X, y, '│', termbox.ColorDefault, termbox.ColorDefault)
+		s.SetCell(rect.Min.X, y, tcell.StyleDefault, '│')
+		s.SetCell(rect.Max.X, y, tcell.StyleDefault, '│')
 	}
 }
 
-func tbInfo(msg string, rect image.Rectangle) {
-	tbfill(rect, termbox.ColorDefault)
+func (s Screen) tbInfo(msg string, rect image.Rectangle) {
+	s.tbFill(rect, tcell.ColorDefault)
 
-	termbox.SetCell(rect.Min.X, rect.Min.Y, '╔', termbox.ColorDefault, termbox.ColorDefault)
-	termbox.SetCell(rect.Max.X, rect.Min.Y, '╗', termbox.ColorDefault, termbox.ColorDefault)
-	termbox.SetCell(rect.Min.X, rect.Max.Y, '╚', termbox.ColorDefault, termbox.ColorDefault)
-	termbox.SetCell(rect.Max.X, rect.Max.Y, '╝', termbox.ColorDefault, termbox.ColorDefault)
+	s.SetCell(rect.Min.X, rect.Min.Y, tcell.StyleDefault, '╔')
+	s.SetCell(rect.Max.X, rect.Min.Y, tcell.StyleDefault, '╗')
+	s.SetCell(rect.Min.X, rect.Max.Y, tcell.StyleDefault, '╚')
+	s.SetCell(rect.Max.X, rect.Max.Y, tcell.StyleDefault, '╝')
 
 	for x := rect.Min.X + 1; x < rect.Max.X; x++ {
-		termbox.SetCell(x, rect.Min.Y, '═', termbox.ColorDefault, termbox.ColorDefault)
-		termbox.SetCell(x, rect.Max.Y, '═', termbox.ColorDefault, termbox.ColorDefault)
+		s.SetCell(x, rect.Min.Y, tcell.StyleDefault, '═')
+		s.SetCell(x, rect.Max.Y, tcell.StyleDefault, '═')
 	}
 	for y := rect.Min.Y + 1; y < rect.Max.Y; y++ {
-		termbox.SetCell(rect.Min.X, y, '║', termbox.ColorDefault, termbox.ColorDefault)
-		termbox.SetCell(rect.Max.X, y, '║', termbox.ColorDefault, termbox.ColorDefault)
+		s.SetCell(rect.Min.X, y, tcell.StyleDefault, '║')
+		s.SetCell(rect.Max.X, y, tcell.StyleDefault, '║')
 	}
 
 	lines := strings.Split(msg, "\n")
 	for i, line := range lines {
-		tbprintString(line,
+		s.tbPrintString(line,
 			image.Pt(rect.Min.X+(rect.Dx()-len(line))/2,
-			rect.Min.Y+(rect.Dy()-len(lines)+1)/2+i))
+				rect.Min.Y+(rect.Dy()-len(lines)+1)/2+i))
 	}
-
 }
+
