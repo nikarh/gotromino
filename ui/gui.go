@@ -103,7 +103,6 @@ func (s Screen) draw(g *game.Game) {
 
 	next := g.Queue.Polyominoes
 	s.tbPrintRect(image.Rect(qo.X+2, qo.Y+2, qo.X+9+2, qo.Y+2+5))
-	s.tbFill(image.Rect(qo.X+3, qo.Y+3, qo.X+3+8, qo.Y+3+4), tcell.ColorDefault)
 	s.tbPrintPolyomino(next[0], qo.Add(image.Pt(7-int(next[0].Dim), 4)))
 
 	for i := 1; i < len(next); i++ {
@@ -125,7 +124,7 @@ func (s Screen) draw(g *game.Game) {
 
 	s.tbPrintString("←, →  - move", sm.Add(image.Pt(dx, dy+3)))
 	s.tbPrintString("z     - turn CCW", sm.Add(image.Pt(dx, dy+4)))
-	s.tbPrintString("x, →  - turn CW", sm.Add(image.Pt(dx, dy+5)))
+	s.tbPrintString("x, ↑  - turn CW", sm.Add(image.Pt(dx, dy+5)))
 	s.tbPrintString("↓     - soft drop", sm.Add(image.Pt(dx, dy+6)))
 	s.tbPrintString("space - hard drop", sm.Add(image.Pt(dx, dy+7)))
 

@@ -21,33 +21,33 @@ func newMatrix(size image.Point) Matrix {
 	}
 }
 
-func (t Matrix) Fits(p Polyomino, pos image.Point) bool {
+func (m Matrix) Fits(p Polyomino, pos image.Point) bool {
 	for _, pt := range p.Points {
 		x, y := pos.X+int(pt>>4), pos.Y+int(pt&0x0F)
-		if x < 0 || y < 0 || x >= t.Size.X || y >= t.Size.Y {
+		if x < 0 || y < 0 || x >= m.Size.X || y >= m.Size.Y {
 			return false
 		}
-		if t.Raw[y][x] > 0 {
+		if m.Raw[y][x] > 0 {
 			return false
 		}
 	}
 	return true
 }
 
-func (t Matrix) Put(p Polyomino, pos image.Point) {
+func (m Matrix) Put(p Polyomino, pos image.Point) {
 	for _, pt := range p.Points {
 		x, y := pos.X+int(pt>>4), pos.Y+int(pt&0x0F)
-		t.Raw[y][x] = p.Id
+		m.Raw[y][x] = p.Id
 	}
 }
 
-func (t Matrix) FullLines() []int {
+func (m Matrix) FullLines() []int {
 	result := make([]int, 0)
 
-	for y := 0; y < t.Size.Y; y++ {
+	for y := 0; y < m.Size.Y; y++ {
 		completed := true
-		for x := 0; x < t.Size.X; x++ {
-			if t.Raw[y][x] == 0 {
+		for x := 0; x < m.Size.X; x++ {
+			if m.Raw[y][x] == 0 {
 				completed = false
 				break
 			}
@@ -60,19 +60,19 @@ func (t Matrix) FullLines() []int {
 	return result
 }
 
-func (t Matrix) Clear(lines []int) {
+func (m Matrix) Clear(lines []int) {
 	for i, cy := range lines {
 		for y := cy; y > i; y-- {
-			t.Raw[y] = t.Raw[y-1]
+			m.Raw[y] = m.Raw[y-1]
 		}
-		t.Raw[i] = make([]rune, t.Size.X)
+		m.Raw[i] = make([]rune, m.Size.X)
 	}
 }
 
-func (f Matrix) Full() bool {
+func (m Matrix) Full() bool {
 	for y := 1; y >= 0; y-- {
-		for x := 0; x < f.Size.X; x++ {
-			if f.Raw[y][x] > 0 {
+		for x := 0; x < m.Size.X; x++ {
+			if m.Raw[y][x] > 0 {
 				return true
 			}
 		}

@@ -9,6 +9,7 @@ import (
 )
 
 var colorTable = map[rune]tcell.Color{
+	0: tcell.ColorDefault,
 	'I': tcell.ColorAqua,
 	'O': tcell.ColorYellow,
 	'T': tcell.ColorFuchsia,
@@ -74,10 +75,10 @@ func (s Screen) tbPrintShadowBlock(pos image.Point) {
 	s.SetCell(pos.X+1, pos.Y, tcell.StyleDefault, '╳')
 }
 
-func (s Screen) tbFill(rect image.Rectangle, color tcell.Color) {
+func (s Screen) tbFill(rect image.Rectangle) {
 	for y := rect.Min.Y; y < rect.Max.Y; y++ {
 		for x := rect.Min.X; x < rect.Max.X; x++ {
-			s.SetCell(x, y, tcell.StyleDefault.Background(color), ' ')
+			s.SetCell(x, y, tcell.StyleDefault, ' ')
 		}
 	}
 }
@@ -99,7 +100,7 @@ func (s Screen) tbPrintRect(rect image.Rectangle) {
 }
 
 func (s Screen) tbInfo(msg string, rect image.Rectangle) {
-	s.tbFill(rect, tcell.ColorDefault)
+	s.tbFill(rect)
 
 	s.SetCell(rect.Min.X, rect.Min.Y, tcell.StyleDefault, '╔')
 	s.SetCell(rect.Max.X, rect.Min.Y, tcell.StyleDefault, '╗')

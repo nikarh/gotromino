@@ -1,13 +1,14 @@
 Gotromino - a console Tetris™-like game written in go
 ===========================================
 
-### Motivation
-I don't remember writing a Tetris™ game during my programming career,
-which is pretty weird. So here it goes.
-Tetris™, golang, terminal UI. What could be better?
+## What is this?
+A terminal Tetris™ clone to kill your time, while you are waiting for CI to build your branch.
 
-### Installation
+
+## Installation
 Install this go package with `go get -u github.com/nikarh/gotromino`
 
-### Game
+## Game
 ![Gameplay](game.gif)
+
+Have fun!

@@ -1,0 +1,39 @@
+name: Build and publish release
+
+on:
+  push:
+    tags:
+    - 'v*.*.*'
+
+jobs:
+  build-and-publish:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v2
+
+    - name: Cross-platform build
+      uses: thatisuday/go-cross-build@v1
+      env:
+        INPUT_LDFLAGS: -s -w
+      with:
+        platforms: "linux/amd64, darwin/amd64, windows/amd64"
+        name: "gotromino"
+        dest: "dist"
+
+    - name: Publish artifacts
+      uses: softprops/action-gh-release@35d938cf01f60fbe522917c81be1e892074f6ad6
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        files: |
+          dist/gotromino-linux-amd64
+          dist/gotromino-darwin-amd64
+          dist/gotromino-windows-amd64.exe
+
+    - name: Publish docker image to docker hub
+      uses: elgohr/Publish-Docker-Github-Action@be0a327a5b402db8600d8d2afa83ecc23b2d9a6e
+      with:
+        name: nikarh/gotromino
+        username: ${{ secrets.DOCKER_USERNAME }}
+        password: ${{ secrets.DOCKER_PASSWORD }}
+        tag_names: true
