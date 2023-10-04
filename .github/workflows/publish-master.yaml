@@ -2,18 +2,19 @@ name: Build and publish master
 
 on:
   push:
-    branches: [ master ]
+    branches: [master]
 
 jobs:
   build-and-publish:
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v2
-
-    - name: Publish docker image to docker hub
-      uses: elgohr/Publish-Docker-Github-Action@be0a327a5b402db8600d8d2afa83ecc23b2d9a6e
-      with:
-        name: nikarh/gotromino:latest
-        username: ${{ secrets.DOCKER_USERNAME }}
-        password: ${{ secrets.DOCKER_PASSWORD }}
-
+      - uses: actions/checkout@v4
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v2
+      - name: Publish docker image to docker hub
+        uses: elgohr/Publish-Docker-Github-Action@88142c03bced064b7894b18368f09fc0ba34edea
+        with:
+          name: nikarh/gotromino:latest
+          username: ${{ secrets.DOCKER_USERNAME }}
+          password: ${{ secrets.DOCKER_PASSWORD }}
+          platforms: linux/amd64,linux/arm64

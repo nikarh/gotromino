@@ -3,37 +3,46 @@ name: Build and publish release
 on:
   push:
     tags:
-    - 'v*.*.*'
+      - "v*.*.*"
 
 jobs:
   build-and-publish:
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v2
+      - uses: actions/checkout@v4
 
-    - name: Cross-platform build
-      uses: thatisuday/go-cross-build@v1
-      env:
-        INPUT_LDFLAGS: -s -w
-      with:
-        platforms: "linux/amd64, darwin/amd64, windows/amd64"
-        name: "gotromino"
-        dest: "dist"
+      - name: Cross-platform build
+        uses: thatisuday/go-cross-build@v1
+        env:
+          INPUT_LDFLAGS: -s -w
+        with:
+          platforms: "linux/amd64, darwin/amd64, windows/amd64"
+          name: "gotromino"
+          dest: "dist"
 
-    - name: Publish artifacts
-      uses: softprops/action-gh-release@35d938cf01f60fbe522917c81be1e892074f6ad6
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      with:
-        files: |
-          dist/gotromino-linux-amd64
-          dist/gotromino-darwin-amd64
-          dist/gotromino-windows-amd64.exe
-
-    - name: Publish docker image to docker hub
-      uses: elgohr/Publish-Docker-Github-Action@be0a327a5b402db8600d8d2afa83ecc23b2d9a6e
-      with:
-        name: nikarh/gotromino
-        username: ${{ secrets.DOCKER_USERNAME }}
-        password: ${{ secrets.DOCKER_PASSWORD }}
-        tag_names: true
+      - name: Publish artifacts
+        uses: softprops/action-gh-release@c9b46fe7aad9f02afd89b12450b780f52dacfb2d
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          files: |
+            dist/gotromino-linux-amd64
+            dist/gotromino-darwin-amd64
+            dist/gotromino-windows-amd64.exe
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v2
+      - name: Publish docker image to docker hub
+        uses: elgohr/Publish-Docker-Github-Action@88142c03bced064b7894b18368f09fc0ba34edea
+        with:
+          name: nikarh/gotromino
+          username: ${{ secrets.DOCKER_USERNAME }}
+          password: ${{ secrets.DOCKER_PASSWORD }}
+          tag_names: true
+          platforms: linux/amd64,linux/arm64
+      - name: Docker Hub Description
+        uses: peter-evans/dockerhub-description@v3
+        with:
+          username: ${{ secrets.DOCKER_USERNAME }}
+          password: ${{ secrets.DOCKER_PASSWORD }}
+          repository: nikarh/gotromino
+          readme-filepath: ./README.md
