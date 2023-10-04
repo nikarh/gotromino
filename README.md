@@ -1,5 +1,10 @@
 # Gotromino
 
+![GitHub](https://img.shields.io/github/license/nikarh/gotromino)
+![GitHub Repo stars](https://img.shields.io/github/stars/nikarh/gotromino)
+![Docker Image Version (latest semver)](https://img.shields.io/docker/v/nikarh/gotromino)
+
+
 A console Tetris™-like game written in go.
 Kill your time, while you are waiting for a CI to build your branch.
 Impress your colleges with your gaming skills during a video call with screen sharing
@@ -26,6 +31,6 @@ There are multiple ways to get this game
   ```
 
 ## Game
-![Gameplay](game.gif)
+![Gameplay](https://github.com/nikarh/gotromino/blob/master/game.gif?raw=true)
 
 Have fun!
