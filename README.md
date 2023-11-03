@@ -1,8 +1,8 @@
 # [Gotromino](https://github.com/nikarh/gotromino)
 
-[![GitHub](https://img.shields.io/github/license/nikarh/docker-images)](https://github.com/nikarh/gotromino)
-[![GitHub Repo stars](https://img.shields.io/github/stars/nikarh/docker-images)](https://github.com/nikarh/gotromino)
-[![Docker Image Version (latest semver)](https://img.shields.io/docker/v/nikarh/mediafire-bulk-downloader)](https://hub.docker.com/r/nikarh/gotromino)
+[![GitHub](https://img.shields.io/github/license/nikarh/gotromino)](https://github.com/nikarh/gotromino)
+[![GitHub Repo stars](https://img.shields.io/github/stars/nikarh/gotromino)](https://github.com/nikarh/gotromino)
+[![Docker Image Version (latest semver)](https://img.shields.io/docker/v/nikarh/gotromino)](https://hub.docker.com/r/nikarh/gotromino)
 
 A console Tetris™-like game written in go.
 Kill your time, while you are waiting for a CI to build your branch.
